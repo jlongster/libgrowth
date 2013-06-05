@@ -15,22 +15,19 @@ function dbkey() {
     return arr.join('::');
 }
 
-db.setDateCount = Q.async(setDateCount);
-function* setDateCount(proj, date, count) {
-    var prev = yield db.getDateCount(proj, date);
+var setDateCount = Q.async(function*(proj, date, count) {
+    var prev = yield getDateCount(proj, date);
     if(!prev || count > prev) {
         yield r.set(dbkey(proj, date), count);
     }
-}
+});
 
-db.getDateCount = Q.async(getDateCount);
-function* getDateCount(proj, date) {
+var getDateCount = Q.async(function*(proj, date) {
     var x = yield r.get(dbkey(proj, date));
     return x && parseInt(x, 10);
-}
+});
 
-db.getCounts = Q.async(getCounts);
-function* getCounts(proj) {
+var getCounts = Q.async(function*(proj) {
     var keys = yield r.keys(dbkey(proj, '*'));
     var obj = {};
 
@@ -40,9 +37,16 @@ function* getCounts(proj) {
     })));
 
     return obj;
-}
+});
 
 db.quit = quit;
 function quit() {
     client.quit();
 }
+
+module.exports = {
+    setDateCount: setDateCount,
+    getDateCount: getDateCount,
+    getCounts: getCounts,
+    quit: quit
+};
