@@ -1,34 +1,22 @@
-var redis = require('redis');
 var Q = require('q');
 var http = require('q-io/http');
 var cheerio = require('cheerio');
 var moment = require('moment');
+var db = require('./db');
+var settings = require('./settings');
 
-var client = redis.createClient();
-
-var db = {
-    get: Q.nbind(client.get, client),
-    set: Q.nbind(client.set, client)
-};
-
-function dbkey() {
-    var arr = ['npm-tracker'];
-    Array.prototype.push.apply(arr, arguments);
-    return arr.join('::');
-}
-
-Q.spawn(function*() {
-    var res = yield http.request('https://npmjs.org/package/nunjucks');
+Q.all(settings.projects.map(Q.async(function*(proj) {
+    var res = yield http.request('https://npmjs.org/package/' + proj);
     var html = (yield res.body.read()).toString();
     var $ = cheerio.load(html);
 
-    var count = $('#package .downloads tr:first-child td:first-child');
-    var date = moment().format('YYYYMMDD');
+    var count = $('#package .downloads tr:first-child td:first-child').text();
+    count = count.replace(' ', '');
 
-    if(yield db.get(dbkey(date))) {
-        throw new Error('date already fetched: ' + date);
+    if(parseInt(count, 10)) {
+        var date = moment().format('YYYYMMDD');
+        yield db.setDateCount(proj, date, count);
     }
-
-    yield db.set(dbkey(date), count);
-    client.quit();
+}))).done(function() {
+    db.quit();
 });

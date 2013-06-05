@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd `dirname $0`
+sleep 3600 && exec node --harmony fetch.js

@@ -1,0 +1,19 @@
+
+body {
+    background: url(/img/back.jpg);
+    background-size: cover;
+}
+
+h1 {
+    text-align: center;
+    color: white;
+}
+
+.graph svg {
+    background-color: #fffff5;
+    margin: 0 auto;
+    display: block;
+    margin-top: 2em;
+    box-shadow: 0 0 5px black;
+    border-radius: 5px;
+}
