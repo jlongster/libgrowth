@@ -55,16 +55,24 @@
         g.selectAll('.lines').data(counts).enter()
             .append('line')
             .attr('x1', function(d, i) {
-                return x(moment(dates[i], 'YYYYMMDD').toDate());
+                if(i > 0) {
+                    return x(moment(dates[i-1], 'YYYYMMDD').toDate());
+                }
             })
-            .attr('y1', function(d) {
-                return -y(0);
+            .attr('y1', function(d, i) {
+                if(i > 0) {
+                    return -y(counts[i-1]);
+                }
             })
             .attr('x2', function(d, i) {
-                return x(moment(dates[i], 'YYYYMMDD').toDate());
+                if(i > 0) {
+                    return x(moment(dates[i], 'YYYYMMDD').toDate());
+                }
             })
-            .attr('y2', function(d) {
-                return -y(d);
+            .attr('y2', function(d, i) {
+                if(i > 0) {
+                    return -y(counts[i]);
+                }
             })
             .style('stroke', '#6666f0')
             .style('stroke-width', 1);
