@@ -10,12 +10,17 @@ Q.all(settings.projects.map(Q.async(function*(proj) {
     var html = (yield res.body.read()).toString();
     var $ = cheerio.load(html);
 
-    var count = $('#package .downloads tr:first-child td:first-child').text();
-    count = count.replace(' ', '');
+    var cols = $('#package .downloads tr:first-child td');
+    var count = $(cols[0]).text();
+    var text = $(cols[1]).text();
 
-    if(parseInt(count, 10)) {
-        var date = moment().format('YYYYMMDD');
-        yield db.setDateCount(proj, date, count);
+    if(text.indexOf('last day') !== -1) {
+        count = count.replace(' ', '');
+
+        if(parseInt(count, 10)) {
+            var date = moment().format('YYYYMMDD');
+            yield db.setDateCount(proj, date, count);
+        }
     }
 }))).done(function() {
     db.quit();
