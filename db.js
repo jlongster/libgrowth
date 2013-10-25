@@ -15,29 +15,34 @@ function dbkey() {
     return arr.join('::');
 }
 
-var setDateCount = Q.async(function*(proj, date, count) {
-    var prev = yield getDateCount(proj, date);
-    if(!prev || count > prev) {
-        yield r.set(dbkey(proj, date), count);
-    }
-});
+function setDateCount(proj, date, count) {
+    return getDateCount(proj, date).then(function(prev) {
+        if(!prev || count > prev) {
+            return r.set(dbkey(proj, date), count);
+        }
+    });
+}
 
-var getDateCount = Q.async(function*(proj, date) {
-    var x = yield r.get(dbkey(proj, date));
-    return x && parseInt(x, 10);
-});
+function getDateCount(proj, date) {
+    return r.get(dbkey(proj, date)).then(function(x) {
+        return x && parseInt(x, 10);
+    });
+}
 
-var getCounts = Q.async(function*(proj) {
-    var keys = yield r.keys(dbkey(proj, '*'));
-    var obj = {};
+function getCounts(proj) {
+    return r.keys(dbkey(proj, '*')).then(function(keys) {
+        var obj = {};
 
-    yield Q.all(keys.map(Q.async(function*(dateKey) {
-        var date = dateKey.split('::')[2];
-        obj[date] = parseInt(yield r.get(dateKey), 10);
-    })));
-
-    return obj;
-});
+        return Q.all(keys.map(function(dateKey) {
+            var date = dateKey.split('::')[2];
+            return r.get(dateKey).then(function(dk) {
+                obj[date] = parseInt(dk, 10);
+            });
+        })).then(function() {
+            return obj;
+        });
+    });
+}
 
 db.quit = quit;
 function quit() {
